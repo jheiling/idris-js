@@ -35,6 +35,11 @@ jsGet ty = js "%1[%0]" ty
 jsSet : (ty : Type) -> {auto fty : FTy FFI_JS [] ty} -> ty
 jsSet ty = js "%2[%0] = %1" ty
 
+Member Bool where
+    get member object = pure $ !(js "%1[%0] + 0" (String -> Ptr -> JS_IO Int) member $ cast object) /= 0
+    set member False = js "%1[%0] = false" (String -> Ptr -> JS_IO ()) member . cast
+    set member True = js "%1[%0] = true" (String -> Ptr -> JS_IO ()) member . cast
+
 Member Nat where
     get member = jsGet (String -> Ptr -> JS_IO Int) member . cast >=> pure . cast
     set member value = jsSet (String -> Int -> Ptr -> JS_IO ()) member (cast value) . cast
@@ -66,8 +71,3 @@ wrap : Member a => (member : String) -> (value : a) -> JS_IO Object
 wrap member value = do object <- empty
                        set member value object
                        pure object
-
-%inline
-setBool : (member : String) -> (value : Bool) -> (object : Object) -> JS_IO ()
-setBool member False = js "%1[%0] = false" (String -> Ptr -> JS_IO ()) member . cast
-setBool member True = js "%1[%0] = true" (String -> Ptr -> JS_IO ()) member . cast
