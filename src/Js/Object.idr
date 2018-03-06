@@ -51,6 +51,10 @@ Member String where
     get member = jsGet (String -> Ptr -> JS_IO String) member . cast
     set member value = jsSet (String -> String -> Ptr -> JS_IO ()) member value . cast
 
+Member Ptr where
+    get member = jsGet (String -> Ptr -> JS_IO Ptr) member . cast
+    set member value = jsSet (String -> Ptr -> Ptr -> JS_IO ()) member value . cast
+
 
 
 %inline
