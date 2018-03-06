@@ -4,6 +4,7 @@ sourcedir = src
 modules = Js
         , Js.Object
         , Js.Array
+        , Js.Console
         , Js.DOM
         , Js.DOM.Document
         , Js.Node.Module
