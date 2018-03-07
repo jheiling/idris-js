@@ -9,23 +9,13 @@ import Js
 
 
 public export
-data Object = MkObject Ptr
+interface Class c where
+    ptr : (object : c) -> Ptr
 
 public export
 interface Member a where
-    get : (member : String) -> (object : Object) -> JS_IO a
-    set : (member : String) -> (value : a) -> (object : Object) -> JS_IO ()
-
-
-
-Cast Object Ptr where
-    cast (MkObject ptr) = ptr
-
-Cast (JS_IO Ptr) (JS_IO Object) where
-    cast x = pure $ MkObject !x
-
-Cast (JS_IO Object) (JS_IO Ptr) where
-    cast x = pure $ cast !x
+    get : Class c => (member : String) -> (object : c) -> JS_IO a
+    set : Class c => (member : String) -> (value : a) -> (object : c) -> JS_IO ()
 
 %inline
 jsGet : (ty : Type) -> {auto fty : FTy FFI_JS [] ty} -> ty
@@ -35,39 +25,51 @@ jsGet ty = js "%1[%0]" ty
 jsSet : (ty : Type) -> {auto fty : FTy FFI_JS [] ty} -> ty
 jsSet ty = js "%2[%0] = %1" ty
 
-Member Bool where
-    get member object = pure $ !(js "%1[%0] + 0" (String -> Ptr -> JS_IO Int) member $ cast object) /= 0
-    set member False = js "%1[%0] = false" (String -> Ptr -> JS_IO ()) member . cast
-    set member True = js "%1[%0] = true" (String -> Ptr -> JS_IO ()) member . cast
-
-Member Nat where
-    get member = jsGet (String -> Ptr -> JS_IO Int) member . cast >=> pure . cast
-    set member value = jsSet (String -> Int -> Ptr -> JS_IO ()) member (cast value) . cast
-
-Member Int where
-    get member = jsGet (String -> Ptr -> JS_IO Int) member . cast
-    set member value = jsSet (String -> Int -> Ptr -> JS_IO ()) member value . cast
-
-Member Double where
-    get member = jsGet (String -> Ptr -> JS_IO Double) member . cast
-    set member value = jsSet (String -> Double -> Ptr -> JS_IO ()) member value . cast
-
-Member String where
-    get member = jsGet (String -> Ptr -> JS_IO String) member . cast
-    set member value = jsSet (String -> String -> Ptr -> JS_IO ()) member value . cast
-
-Member Ptr where
-    get member = jsGet (String -> Ptr -> JS_IO Ptr) member . cast
-    set member value = jsSet (String -> Ptr -> Ptr -> JS_IO ()) member value . cast
 
 
+public export
+data Object = MkObject Ptr
+
+Class Object where
+    ptr (MkObject p) = p
 
 %inline
 empty : JS_IO Object
-empty = cast $ js "{}" (JS_IO Ptr)
+empty = MkObject <$> js "{}" (JS_IO Ptr)
 
 %inline
 wrap : Member a => (member : String) -> (value : a) -> JS_IO Object
 wrap member value = do object <- empty
                        set member value object
                        pure object
+
+
+
+Member Bool where
+    get member object = pure $ !(js "%1[%0] + 0" (String -> Ptr -> JS_IO Int) member $ ptr object) /= 0
+    set member False = js "%1[%0] = false" (String -> Ptr -> JS_IO ()) member . ptr
+    set member True = js "%1[%0] = true" (String -> Ptr -> JS_IO ()) member . ptr
+
+Member Nat where
+    get member = jsGet (String -> Ptr -> JS_IO Int) member . ptr >=> pure . cast
+    set member value = jsSet (String -> Int -> Ptr -> JS_IO ()) member (cast value) . ptr
+
+Member Int where
+    get member = jsGet (String -> Ptr -> JS_IO Int) member . ptr
+    set member value = jsSet (String -> Int -> Ptr -> JS_IO ()) member value . ptr
+
+Member Double where
+    get member = jsGet (String -> Ptr -> JS_IO Double) member . ptr
+    set member value = jsSet (String -> Double -> Ptr -> JS_IO ()) member value . ptr
+
+Member String where
+    get member = jsGet (String -> Ptr -> JS_IO String) member . ptr
+    set member value = jsSet (String -> String -> Ptr -> JS_IO ()) member value . ptr
+
+Member Ptr where
+    get member = jsGet (String -> Ptr -> JS_IO Ptr) member . ptr
+    set member value = jsSet (String -> Ptr -> Ptr -> JS_IO ()) member value . ptr
+
+Member Object where
+    get member = jsGet (String -> Ptr -> JS_IO Ptr) member . ptr >=> pure . MkObject
+    set member value = jsSet (String -> Ptr -> Ptr -> JS_IO ()) member (ptr value) . ptr

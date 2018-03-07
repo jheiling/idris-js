@@ -1,5 +1,7 @@
 module Js.DOM
 
+import Js.Object
+
 %default total
 %access export
 
@@ -8,11 +10,5 @@ module Js.DOM
 public export
 data Element = MkElement Ptr
 
-Cast Element Ptr where
-    cast (MkElement ptr) = ptr
-
-Cast (JS_IO Ptr) (JS_IO Element) where
-    cast x = pure $ MkElement !x
-
-Cast (JS_IO Element) (JS_IO Ptr) where
-    cast x = pure $ cast !x
+Class Element where
+    ptr (MkElement p) = p
