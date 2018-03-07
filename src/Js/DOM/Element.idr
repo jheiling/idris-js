@@ -1,4 +1,4 @@
-module Js.DOM
+module Js.DOM.Element
 
 import Js.Object
 

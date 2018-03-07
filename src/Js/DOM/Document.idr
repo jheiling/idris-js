@@ -3,7 +3,7 @@ module Js.DOM.Document
 import Control.Monad.Syntax
 import Js
 import Js.Object
-import Js.DOM
+import Js.DOM.Element
 
 %default total
 %access export
