@@ -7,5 +7,5 @@ import Js
 
 
 export
-log : String -> JS_IO ()
+log : (text : String) -> JS_IO ()
 log = js "console.log(%0)" (String -> JS_IO ())

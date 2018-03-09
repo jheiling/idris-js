@@ -35,7 +35,7 @@ length = js "%0.length" (Ptr -> JS_IO Int) . ptr >=> pure . cast
 append : ArrayValue a => (value : a) -> (array : Array) -> JS_IO ()
 append value array = setAt !(length array) value array
 
-createWith : (Foldable f) => (append' : a -> Array -> JS_IO ()) -> (source : f a) -> JS_IO Array
+createWith : Foldable f => (append' : a -> Array -> JS_IO ()) -> (source : f a) -> JS_IO Array
 createWith append' source = do array <- empty
                                iter (flip append' array) source
                                pure array
